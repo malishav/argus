@@ -25,12 +25,17 @@ def isLinux():
 def isWindows():
     return platform.system() == "Windows"
 
+def isDarwin():
+    return platform.system() == "Darwin"
+
 # OS dependent imports
 if isWindows():
     import win32pipe
     import win32file
 elif isLinux():
     import serial
+elif isDarwin():
+    pass
 else:
     print("Sorry, we don't currently have support for the " + platform.system() + " OS")
     exit()
@@ -113,7 +118,7 @@ class TxWiresharkThread(threading.Thread):
 
     if isWindows():
         PIPE_NAME_WIRESHARK = r'\\.\pipe\argus'
-    elif isLinux():
+    elif isLinux() or isDarwin():
         PIPE_NAME_WIRESHARK = r'/tmp/argus'
 
     def __init__(self):
@@ -142,7 +147,7 @@ class TxWiresharkThread(threading.Thread):
                     300,
                     None,
                 )
-            elif isLinux():
+            elif isLinux() or isDarwin():
                 self.pipe = open(self.PIPE_NAME_WIRESHARK, 'wb')
 
             while True:
@@ -151,14 +156,14 @@ class TxWiresharkThread(threading.Thread):
                     # connect to pipe (blocks until Wireshark appears)
                     if isWindows():
                         win32pipe.ConnectNamedPipe(self.pipe, None)
-                    elif isLinux():
+                    elif isLinux() or isDarwin():
                         open(self.PIPE_NAME_WIRESHARK, 'wb')
 
                     # send PCAP global header to Wireshark
                     ghdr = self._createPcapGlobalHeader()
                     if isWindows():
                         win32file.WriteFile(self.pipe, ghdr)
-                    elif isLinux():
+                    elif isLinux() or isDarwin():
                         self.pipe.write(ghdr)
                         self.pipe.flush()
                 except:
@@ -179,7 +184,7 @@ class TxWiresharkThread(threading.Thread):
                     # disconnect from pipe
                     if isWindows():
                         win32pipe.DisconnectNamedPipe(self.pipe)
-                    elif isLinux():
+                    elif isLinux() or isDarwin():
                         self.pipe.close()
         except Exception as err:
             logCrash(self.name, err)
@@ -232,7 +237,7 @@ class TxWiresharkThread(threading.Thread):
         try:
             if isWindows():
                 win32file.WriteFile(self.pipe, pcap+frame)
-            elif isLinux():
+            elif isLinux() or isDarwin():
                 self.pipe.write(pcap+frame)
                 self.pipe.flush()
 
@@ -319,7 +324,7 @@ def main():
         if isWindows():
             wireshark_cmd        = ['C:\Program Files\Wireshark\Wireshark.exe',
                                     r'-i\\.\pipe\argus', '-k']
-        elif isLinux():
+        elif isLinux() or isDarwin():
             fifo_name = "/tmp/argus"
             if not os.path.exists(fifo_name):
                 try:
