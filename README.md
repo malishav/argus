@@ -26,7 +26,7 @@ Share a wireless sniffer through the cloud.
 At the Argus Probe:
 * start `SiteAnalyzerAdapter.exe`
 * close Wireshark
-* `python ArgusProbe_Beamlogic.py` _(or double-click)_
+* `python ArgusProbe.py` _(or double-click)_
 
 At the Argus client:
 * `python ArgusClient.py` _(or double-click)_
